@@ -1,0 +1,20 @@
+EXERCISE 2 - CHECK() MACRO
+--------------------------------------------------------------
+
++------------+-------------------------------+--------------------------------------------------------+
+| Experiment | Change made                   | Output                                                 |
++------------+-------------------------------+--------------------------------------------------------+
+| Baseline   | None                          | Verification: 0 mismatches out of 512                  |
+| A          | Launch add<<<1, 2048>>>       | Error: ex2_check.cu:39, code:1, reason: invalid argument |
+| B          | cudaMalloc of 1 TB for d_a    | Error: ex2_check.cu:27, code:2, reason: out of memory  |
+| C          | Same 1 TB malloc, no CHECK    | Verification: 512 mismatches out of 512 (no error msg) |
++------------+-------------------------------+--------------------------------------------------------+
+
+Note: The lab sheet expects code 9 for Experiment A, but on
+Colab's CUDA toolkit the oversized launch was reported as code 1
+(invalid argument). The CHECK macro caught it either way.
+
+Conclusion: Without CHECK, a failed cudaMalloc is silent and the
+program keeps running on an invalid pointer, giving wrong results
+with no hint of the cause. With CHECK, the exact file, line, code
+and reason are reported and the program exits immediately.

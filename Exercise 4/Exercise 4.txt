@@ -1,0 +1,11 @@
+Volume: 500×500×500 = 125,000,000 voxels, one thread per voxel.
+
+Block shape: dim3(8,8,8) = 512 threads. A 16×16×16 block would be 4,096 threads, which exceeds the 1,024-per-block limit and would fail with an invalid configuration error.
+
+Grid: (500+7)/8 in each dimension = 63 × 63 × 63 = 250,047 blocks.
+
+Bounds check: 63 × 8 = 504 > 500, so the last few threads in each dimension fall outside the volume. The x < nx && y < ny && z < nz check stops them from writing out of bounds, and all three dimensions need it.
+
+Flat index: (z * ny + y) * nx + x maps the 3D coordinate onto the 1D array, with x varying fastest. Neighbouring threads in x then touch neighbouring memory addresses, which keeps global memory access coalesced.
+
+Memory: 500 MB per array, about 1 GB on the GPU, so it fits easily on the T4’s 16 GB.

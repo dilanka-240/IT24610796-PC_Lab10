@@ -1,0 +1,9 @@
+Image: 800×600 = 480,000 pixels, one thread per pixel.
+
+Blocks: dim3(16,16) = 256 threads, within the 1024 limit.
+
+Grid: (800+15)/16 × (600+15)/16 = 50 × 38 = 1,900 blocks.
+
+Why the bounds check is needed: 38 × 16 = 608 rows, which is more than 600, so the last 8 thread rows have no pixel to process.
+
+Saturation: any pixel + offset above 255 is clamped to 255, so 187,382 pixels were clamped.

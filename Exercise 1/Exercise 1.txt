@@ -1,0 +1,50 @@
+EXERCISE 1 - TIMING A GPU PROGRAM
+--------------------------------------------------------------
+
+1(a) Effect of cudaDeviceSynchronize()  (N = 512)
+
++----------------------------------+-----------------+
+| Version                          | Time taken (s)  |
++----------------------------------+-----------------+
+| With cudaDeviceSynchronize()     | 0.0006182       |
+| Without cudaDeviceSynchronize()  | 0.0000980       |
++----------------------------------+-----------------+
+
+Explanation: Kernel launches are asynchronous. Without the sync,
+the CPU timer stops right after the launch is queued, so it does
+not measure the kernel execution. The "faster" time is not real.
+
+
+1(b) Timing Lab 09 Exercises 3-6 (3 runs each)
+
++------+---------------------------+-------------+-----------+-----------+-----------+-----------+
+| Ex   | Configuration             | Elements    | Run1 (s)  | Run2 (s)  | Run3 (s)  | Avg (s)   |
++------+---------------------------+-------------+-----------+-----------+-----------+-----------+
+| Ex3  | 512 blocks x 1 thread     | 512         | 0.0001149 | 0.0001211 | 0.0001230 | 0.0001197 |
+| Ex4  | 1 block x 512 threads     | 512         | 0.0001161 | 0.0000892 | 0.0000880 | 0.0000978 |
+| Ex5  | 19532 blocks x 512 thr.   | 10,000,000  | 0.0006042 | 0.0005960 | 0.0006070 | 0.0006024 |
+| Ex6  | dim3(32,16) threads       | 100,000,000 | 0.0049520 | 0.0049641 | 0.0049169 | 0.0049443 |
++------+---------------------------+-------------+-----------+-----------+-----------+-----------+
+
+Observations:
+- Ex4 is slightly faster than Ex3: one block of 512 threads is
+  cheaper than 512 blocks of 1 thread (which also wastes warps).
+- Ex6 has 10x more data than Ex5 and takes about 8x longer, so
+  kernel time scales with data size / memory bandwidth.
+
+
+1(c) Kernel-only vs full sequence (Ex5, N = 100,000,000)
+
++---------+------------------+--------------------+
+| Run     | Kernel-only (s)  | Full sequence (s)  |
++---------+------------------+--------------------+
+| 1       | 0.0047619        | 4.6794329          |
+| 2       | 0.0047829        | 4.9827480          |
+| 3       | 0.0047500        | 4.6145880          |
+| Average | 0.0047649        | 4.7589230          |
++---------+------------------+--------------------+
+
+Observation: The full sequence is about 1000x longer than the
+kernel. It includes host-side setup (200 million rand() calls and
+malloc) plus the host<->device copies. The kernel is a tiny part
+of the end-to-end time.
